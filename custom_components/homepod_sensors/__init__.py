@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from functools import partial
 
 # Aliased: importing the local `.webhook` submodule below binds the name
 # `webhook` on this package, which would otherwise shadow this import and
@@ -31,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN,
         "HomePod Sensors",
         webhook_id,
-        async_handle_webhook,
+        partial(async_handle_webhook, coordinator, entry),
         # The iOS Shortcut pushes from the home network (or via VPN); reject
         # requests that reach the endpoint from the internet.
         local_only=True,

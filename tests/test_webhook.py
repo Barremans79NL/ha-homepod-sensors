@@ -4,8 +4,14 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.homepod_sensors.const import CONF_SECRET, DOMAIN
+from custom_components.homepod_sensors.const import (
+    CONF_UPDATE_INTERVAL,
+    CONF_WEBHOOK_ID,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+)
 from custom_components.homepod_sensors.coordinator import HomePodCoordinator
 from custom_components.homepod_sensors.webhook import async_handle_webhook
 
@@ -19,57 +25,72 @@ def _request(payload):
     return request
 
 
-@pytest.fixture
-async def setup_with_secret(hass, mock_config_entry):
-    """Set up the integration with a shared secret configured."""
-    mock_config_entry.add_to_hass(hass)
-    hass.config_entries.async_update_entry(
-        mock_config_entry, options={CONF_SECRET: "s3cr3t"}
+def _entry(**options) -> MockConfigEntry:
+    return MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_WEBHOOK_ID: TEST_WEBHOOK_ID,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+        },
+        options=options,
     )
-    with patch("homeassistant.components.webhook.async_register"), patch(
-        "homeassistant.components.webhook.async_unregister"
-    ):
-        await hass.config_entries.async_setup(mock_config_entry.entry_id)
-        await hass.async_block_till_done()
-    return hass.data[DOMAIN][mock_config_entry.entry_id]
 
 
-async def test_handler_accepts_matching_secret(hass, setup_with_secret):
-    coordinator = setup_with_secret
-    resp = await async_handle_webhook(
+async def _handle(hass, coordinator, entry, payload):
+    """Invoke the handler the way functools.partial binds it at registration."""
+    return await async_handle_webhook(
+        coordinator, entry, hass, TEST_WEBHOOK_ID, _request(payload)
+    )
+
+
+async def test_handler_accepts_matching_secret(hass):
+    coordinator = HomePodCoordinator(hass)
+    resp = await _handle(
         hass,
-        TEST_WEBHOOK_ID,
-        _request({"secret": "s3cr3t", "devices": SAMPLE_PAYLOAD["devices"]}),
+        coordinator,
+        _entry(secret="s3cr3t"),
+        {"secret": "s3cr3t", "devices": SAMPLE_PAYLOAD["devices"]},
     )
     assert resp.status == 200
     assert "HP000000000001" in coordinator.data
 
 
-async def test_handler_rejects_wrong_secret(hass, setup_with_secret):
-    coordinator = setup_with_secret
-    resp = await async_handle_webhook(
+async def test_handler_rejects_wrong_secret(hass):
+    coordinator = HomePodCoordinator(hass)
+    resp = await _handle(
         hass,
-        TEST_WEBHOOK_ID,
-        _request({"secret": "nope", "devices": SAMPLE_PAYLOAD["devices"]}),
+        coordinator,
+        _entry(secret="s3cr3t"),
+        {"secret": "nope", "devices": SAMPLE_PAYLOAD["devices"]},
     )
     assert resp.status == 401
     assert coordinator.data == {}
 
 
-async def test_handler_rejects_missing_secret_when_configured(hass, setup_with_secret):
-    resp = await async_handle_webhook(
-        hass, TEST_WEBHOOK_ID, _request({"devices": SAMPLE_PAYLOAD["devices"]})
+async def test_handler_rejects_missing_secret_when_configured(hass):
+    coordinator = HomePodCoordinator(hass)
+    resp = await _handle(
+        hass, coordinator, _entry(secret="s3cr3t"), {"devices": SAMPLE_PAYLOAD["devices"]}
     )
     assert resp.status == 401
 
 
-async def test_handler_ignores_secret_when_not_configured(hass, setup_integration):
-    resp = await async_handle_webhook(
+async def test_handler_ignores_secret_when_not_configured(hass):
+    coordinator = HomePodCoordinator(hass)
+    resp = await _handle(
         hass,
-        TEST_WEBHOOK_ID,
-        _request({"secret": "anything", "devices": SAMPLE_PAYLOAD["devices"]}),
+        coordinator,
+        _entry(),
+        {"secret": "anything", "devices": SAMPLE_PAYLOAD["devices"]},
     )
     assert resp.status == 200
+    assert "HP000000000001" in coordinator.data
+
+
+async def test_handler_rejects_non_list_devices(hass):
+    coordinator = HomePodCoordinator(hass)
+    resp = await _handle(hass, coordinator, _entry(), {"devices": "nope"})
+    assert resp.status == 400
 
 
 @pytest.fixture
