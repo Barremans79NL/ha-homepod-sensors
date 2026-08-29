@@ -1,11 +1,11 @@
-"""Tests for my_integration setup."""
+"""Tests for homepod_sensors setup."""
 from __future__ import annotations
 
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.my_integration import DOMAIN
+from custom_components.homepod_sensors.const import DOMAIN
 
 
 async def test_setup_entry(hass: HomeAssistant, mock_config_entry: MockConfigEntry) -> None:

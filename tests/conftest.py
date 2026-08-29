@@ -15,6 +15,12 @@ from custom_components.homepod_sensors.const import (
 TEST_WEBHOOK_ID = "test-webhook-id-abc123"
 
 
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(enable_custom_integrations):
+    """Enable loading of the custom integration in every test."""
+    yield
+
+
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
     """Return a mock config entry."""
