@@ -35,7 +35,7 @@ Apple enables the HomePod mini's built-in sensors in the Apple Home app but deli
 ### Via HACS (recommended)
 
 1. Open HACS → **Integrations** → **⋮** → **Custom repositories**
-2. Add `https://github.com/pujux/ha-homepod-sensors` as an **Integration**
+2. Add `https://github.com/Barremans79NL/ha-homepod-sensors` as an **Integration**
 3. Search for **HomePod Sensors** and install
 4. Restart Home Assistant
 
