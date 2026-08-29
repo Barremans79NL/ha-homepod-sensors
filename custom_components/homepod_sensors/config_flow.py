@@ -1,11 +1,11 @@
 """Config flow for HomePod Sensors integration."""
 from __future__ import annotations
 
-import secrets
 from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.components import webhook
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.network import get_url
 
@@ -18,7 +18,7 @@ class HomePodSensorsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self) -> None:
-        self._webhook_id: str = secrets.token_hex(16)
+        self._webhook_id: str = webhook.async_generate_id()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
