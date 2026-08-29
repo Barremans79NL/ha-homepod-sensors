@@ -21,10 +21,12 @@
       "init": {
         "title": "HomePod Sensors Options",
         "data": {
-          "update_interval": "Update interval (minutes)"
+          "update_interval": "Update interval (minutes)",
+          "secret": "Shared secret (optional)"
         },
         "data_description": {
-          "update_interval": "How often the iOS Shortcut pushes sensor data. Staleness threshold = 3× this value."
+          "update_interval": "How often the iOS Shortcut pushes sensor data. Staleness threshold = 3× this value.",
+          "secret": "If set, the iOS Shortcut must include a matching \"secret\" field in its JSON body. Leave blank to disable."
         }
       }
     }

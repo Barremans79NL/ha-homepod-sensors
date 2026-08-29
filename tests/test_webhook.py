@@ -1,14 +1,75 @@
 """Tests for the HomePod Sensors webhook handler."""
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from custom_components.homepod_sensors.const import DOMAIN
+from custom_components.homepod_sensors.const import CONF_SECRET, DOMAIN
 from custom_components.homepod_sensors.coordinator import HomePodCoordinator
+from custom_components.homepod_sensors.webhook import async_handle_webhook
 
-from .conftest import SAMPLE_PAYLOAD
+from .conftest import SAMPLE_PAYLOAD, TEST_WEBHOOK_ID
+
+
+def _request(payload):
+    """Minimal stand-in for an aiohttp Request carrying a JSON body."""
+    request = Mock()
+    request.json = AsyncMock(return_value=payload)
+    return request
+
+
+@pytest.fixture
+async def setup_with_secret(hass, mock_config_entry):
+    """Set up the integration with a shared secret configured."""
+    mock_config_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        mock_config_entry, options={CONF_SECRET: "s3cr3t"}
+    )
+    with patch("homeassistant.components.webhook.async_register"), patch(
+        "homeassistant.components.webhook.async_unregister"
+    ):
+        await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+    return hass.data[DOMAIN][mock_config_entry.entry_id]
+
+
+async def test_handler_accepts_matching_secret(hass, setup_with_secret):
+    coordinator = setup_with_secret
+    resp = await async_handle_webhook(
+        hass,
+        TEST_WEBHOOK_ID,
+        _request({"secret": "s3cr3t", "devices": SAMPLE_PAYLOAD["devices"]}),
+    )
+    assert resp.status == 200
+    assert "HP000000000001" in coordinator.data
+
+
+async def test_handler_rejects_wrong_secret(hass, setup_with_secret):
+    coordinator = setup_with_secret
+    resp = await async_handle_webhook(
+        hass,
+        TEST_WEBHOOK_ID,
+        _request({"secret": "nope", "devices": SAMPLE_PAYLOAD["devices"]}),
+    )
+    assert resp.status == 401
+    assert coordinator.data == {}
+
+
+async def test_handler_rejects_missing_secret_when_configured(hass, setup_with_secret):
+    resp = await async_handle_webhook(
+        hass, TEST_WEBHOOK_ID, _request({"devices": SAMPLE_PAYLOAD["devices"]})
+    )
+    assert resp.status == 401
+
+
+async def test_handler_ignores_secret_when_not_configured(hass, setup_integration):
+    resp = await async_handle_webhook(
+        hass,
+        TEST_WEBHOOK_ID,
+        _request({"secret": "anything", "devices": SAMPLE_PAYLOAD["devices"]}),
+    )
+    assert resp.status == 200
 
 
 @pytest.fixture

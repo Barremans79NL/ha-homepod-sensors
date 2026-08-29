@@ -9,7 +9,14 @@ from homeassistant.components import webhook
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.network import get_url
 
-from .const import CONF_UPDATE_INTERVAL, CONF_WEBHOOK_ID, DEFAULT_UPDATE_INTERVAL, DOMAIN, NAME
+from .const import (
+    CONF_SECRET,
+    CONF_UPDATE_INTERVAL,
+    CONF_WEBHOOK_ID,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    NAME,
+)
 
 
 class HomePodSensorsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -82,6 +89,7 @@ class HomePodSensorsOptionsFlow(config_entries.OptionsFlow):
             CONF_UPDATE_INTERVAL,
             self._config_entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
         )
+        current_secret = self._config_entry.options.get(CONF_SECRET, "")
 
         return self.async_show_form(
             step_id="init",
@@ -90,6 +98,7 @@ class HomePodSensorsOptionsFlow(config_entries.OptionsFlow):
                     vol.Required(CONF_UPDATE_INTERVAL, default=current_interval): vol.All(
                         int, vol.Range(min=1, max=60)
                     ),
+                    vol.Optional(CONF_SECRET, default=current_secret): str,
                 }
             ),
         )
