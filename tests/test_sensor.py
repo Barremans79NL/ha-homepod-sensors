@@ -107,7 +107,7 @@ async def test_last_updated_sensor_stays_available_when_stale(hass, mock_config_
         HomePodTemperatureSensor,
     )
 
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(SAMPLE_PAYLOAD["devices"])
     coordinator.data["HP000000000001"].last_seen = datetime.now(UTC) - timedelta(hours=1)
 

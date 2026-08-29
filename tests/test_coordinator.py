@@ -15,7 +15,7 @@ async def test_restores_devices_from_store(hass):
         [{"serial": "HP000000000001", "name": "Living Room HomePod"}]
     )
 
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     await coordinator.async_load_stored_devices()
 
     assert "HP000000000001" in coordinator.data
@@ -28,14 +28,14 @@ async def test_restores_devices_from_store(hass):
 
 async def test_load_stored_devices_without_store_is_noop(hass):
     """Missing store file should not raise and should leave data empty."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     await coordinator.async_load_stored_devices()
     assert coordinator.data == {}
 
 
 async def test_non_numeric_reading_skips_only_that_device(hass):
     """A malformed reading must not abort processing of the rest of the payload."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(
         [
             {
@@ -59,7 +59,7 @@ async def test_non_numeric_reading_skips_only_that_device(hass):
 
 async def test_non_numeric_reading_does_not_leave_partial_device(hass):
     """A device that fails conversion on a later push keeps its previous value."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(
         [{"serial": "HP1", "name": "Pod", "temperature_c": 21.0, "humidity_pct": 40.0}]
     )
@@ -72,7 +72,7 @@ async def test_non_numeric_reading_does_not_leave_partial_device(hass):
 
 async def test_out_of_range_reading_is_dropped(hass):
     """Implausible values must not reach the sensor (they pollute LTS forever)."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(
         [
             {"serial": "HP1", "name": "Cold", "temperature_c": -999.0, "humidity_pct": 50.0},
@@ -88,7 +88,7 @@ async def test_out_of_range_reading_is_dropped(hass):
 
 async def test_range_bounds_are_inclusive(hass):
     """Values exactly on the boundary are accepted."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(
         [{"serial": "HP1", "name": "Edge", "temperature_c": 80.0, "humidity_pct": 0.0}]
     )
@@ -99,12 +99,12 @@ async def test_range_bounds_are_inclusive(hass):
 
 async def test_new_devices_are_persisted(hass):
     """Handling a payload with new devices should write them to the store."""
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator = HomePodCoordinator(hass)
     coordinator.handle_webhook_payload(SAMPLE_PAYLOAD["devices"])
 
     # Flush the debounced save.
     await coordinator._store.async_save(coordinator._devices_to_store())
 
-    restored = HomePodCoordinator(hass, update_interval_minutes=5)
+    restored = HomePodCoordinator(hass)
     await restored.async_load_stored_devices()
     assert set(restored.data) == {"HP000000000001", "HP000000000002"}

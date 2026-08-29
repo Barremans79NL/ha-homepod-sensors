@@ -10,7 +10,7 @@ from homeassistant.components import webhook as ha_webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_UPDATE_INTERVAL, CONF_WEBHOOK_ID, DEFAULT_UPDATE_INTERVAL, DOMAIN, PLATFORMS
+from .const import CONF_WEBHOOK_ID, DOMAIN, PLATFORMS
 from .coordinator import HomePodCoordinator
 from .webhook import async_handle_webhook
 
@@ -19,8 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HomePod Sensors from a config entry."""
-    update_interval = entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
-    coordinator = HomePodCoordinator(hass, update_interval_minutes=update_interval)
+    coordinator = HomePodCoordinator(hass)
     await coordinator.async_load_stored_devices()
 
     hass.data.setdefault(DOMAIN, {})
@@ -40,16 +39,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    entry.async_on_unload(entry.add_update_listener(async_update_options))
+    entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
     return True
 
 
-async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    coordinator: HomePodCoordinator = hass.data[DOMAIN][entry.entry_id]
-    coordinator.update_interval_minutes = entry.options.get(
-        CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
-    )
+async def _async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the entry so a changed update interval / secret takes effect."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

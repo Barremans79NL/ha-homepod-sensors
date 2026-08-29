@@ -44,16 +44,14 @@ class HomePodDeviceData:
 class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
     """Coordinator that receives push data from iOS Shortcuts webhook."""
 
-    def __init__(self, hass: HomeAssistant, update_interval_minutes: int) -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            # No polling — we are purely push-driven. update_interval is stored for
-            # staleness calculation only and is not passed to the parent coordinator.
+            # No polling — we are purely push-driven, so no update_interval.
         )
         self.data: dict[str, HomePodDeviceData] = {}
-        self.update_interval_minutes = update_interval_minutes
         self._new_device_callbacks: list[Callable[[str, HomePodDeviceData], None]] = []
         self._store: Store[list[dict[str, str]]] = Store(
             hass, STORAGE_VERSION, STORAGE_KEY
