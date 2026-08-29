@@ -6,6 +6,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -98,10 +99,12 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
     def handle_webhook_payload(self, devices: list[dict]) -> None:
         """Process incoming payload from the iOS Shortcut."""
         new_serials: list[str] = []
+        device_list_changed = False
 
         for device in devices:
             serial = device.get("serial", "").strip()
-            name = device.get("name", f"HomePod {serial[:6]}").strip()
+            reported_name = (device.get("name") or "").strip()
+            name = reported_name or f"HomePod {serial[:6]}"
             temp = device.get("temperature_c")
             humidity = device.get("humidity_pct")
 
@@ -131,10 +134,15 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
                 )
                 continue
 
-            is_new = serial not in self.data
-            if is_new:
+            if serial not in self.data:
                 self.data[serial] = HomePodDeviceData(serial=serial, name=name)
                 new_serials.append(serial)
+                device_list_changed = True
+            elif reported_name and self.data[serial].name != reported_name:
+                # HomePod was renamed in the Home app — follow it.
+                self.data[serial].name = reported_name
+                self._rename_registry_device(serial, reported_name)
+                device_list_changed = True
 
             self.data[serial].update(temperature_c, humidity_pct)
 
@@ -147,8 +155,16 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
                 cb(serial, self.data[serial])
 
         # Persist the device list so entities survive a restart.
-        if new_serials:
+        if device_list_changed:
             self._persist_devices()
+
+    @callback
+    def _rename_registry_device(self, serial: str, name: str) -> None:
+        """Push a renamed HomePod through to the device registry entry."""
+        registry = dr.async_get(self.hass)
+        device = registry.async_get_device(identifiers={(DOMAIN, serial)})
+        if device is not None and device.name_by_user is None:
+            registry.async_update_device(device.id, name=name)
 
     async def _async_update_data(self) -> dict[str, HomePodDeviceData]:
         """Not used — data arrives via webhook push only."""

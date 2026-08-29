@@ -1,12 +1,20 @@
 """Tests for the HomePod Sensors coordinator."""
 from __future__ import annotations
 
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.storage import Store
 
-from custom_components.homepod_sensors.const import STORAGE_KEY, STORAGE_VERSION
+from custom_components.homepod_sensors.const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 from custom_components.homepod_sensors.coordinator import HomePodCoordinator
 
 from .conftest import SAMPLE_PAYLOAD
+
+
+def _reading(serial, name=None, temp=20.0, humidity=40.0):
+    device = {"serial": serial, "temperature_c": temp, "humidity_pct": humidity}
+    if name is not None:
+        device["name"] = name
+    return device
 
 
 async def test_restores_devices_from_store(hass):
@@ -95,6 +103,42 @@ async def test_range_bounds_are_inclusive(hass):
 
     assert coordinator.data["HP1"].temperature_c == 80.0
     assert coordinator.data["HP1"].humidity_pct == 0.0
+
+
+async def test_device_name_follows_rename(hass):
+    """Renaming the HomePod in the Home app should update the stored name."""
+    coordinator = HomePodCoordinator(hass)
+    coordinator.handle_webhook_payload([_reading("HP1", name="Kitchen")])
+    coordinator.handle_webhook_payload([_reading("HP1", name="Dining Room")])
+
+    assert coordinator.data["HP1"].name == "Dining Room"
+
+
+async def test_missing_name_does_not_override_existing(hass):
+    """A payload without a name must not reset the device to the default name."""
+    coordinator = HomePodCoordinator(hass)
+    coordinator.handle_webhook_payload([_reading("HP1", name="Kitchen")])
+    coordinator.handle_webhook_payload([_reading("HP1")])
+
+    assert coordinator.data["HP1"].name == "Kitchen"
+
+
+async def test_rename_propagates_to_device_registry(hass, mock_config_entry):
+    """A rename should reach the device registry entry (unless user-overridden)."""
+    mock_config_entry.add_to_hass(hass)
+    registry = dr.async_get(hass)
+    registry.async_get_or_create(
+        config_entry_id=mock_config_entry.entry_id,
+        identifiers={(DOMAIN, "HP1")},
+        name="Kitchen",
+    )
+
+    coordinator = HomePodCoordinator(hass)
+    coordinator.handle_webhook_payload([_reading("HP1", name="Kitchen")])
+    coordinator.handle_webhook_payload([_reading("HP1", name="Dining Room")])
+
+    device = registry.async_get_device(identifiers={(DOMAIN, "HP1")})
+    assert device.name == "Dining Room"
 
 
 async def test_new_devices_are_persisted(hass):
