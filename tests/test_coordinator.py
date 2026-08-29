@@ -33,6 +33,43 @@ async def test_load_stored_devices_without_store_is_noop(hass):
     assert coordinator.data == {}
 
 
+async def test_non_numeric_reading_skips_only_that_device(hass):
+    """A malformed reading must not abort processing of the rest of the payload."""
+    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator.handle_webhook_payload(
+        [
+            {
+                "serial": "HP000000000001",
+                "name": "Bad",
+                "temperature_c": "not-a-number",
+                "humidity_pct": 50.0,
+            },
+            {
+                "serial": "HP000000000002",
+                "name": "Good",
+                "temperature_c": 20.0,
+                "humidity_pct": 50.0,
+            },
+        ]
+    )
+
+    assert "HP000000000001" not in coordinator.data
+    assert coordinator.data["HP000000000002"].temperature_c == 20.0
+
+
+async def test_non_numeric_reading_does_not_leave_partial_device(hass):
+    """A device that fails conversion on a later push keeps its previous value."""
+    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator.handle_webhook_payload(
+        [{"serial": "HP1", "name": "Pod", "temperature_c": 21.0, "humidity_pct": 40.0}]
+    )
+    coordinator.handle_webhook_payload(
+        [{"serial": "HP1", "name": "Pod", "temperature_c": "", "humidity_pct": 40.0}]
+    )
+
+    assert coordinator.data["HP1"].temperature_c == 21.0
+
+
 async def test_new_devices_are_persisted(hass):
     """Handling a payload with new devices should write them to the store."""
     coordinator = HomePodCoordinator(hass, update_interval_minutes=5)

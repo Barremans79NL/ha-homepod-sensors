@@ -103,12 +103,23 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
                 _LOGGER.warning("Skipping malformed device payload: %s", device)
                 continue
 
+            try:
+                temperature_c = float(temp)
+                humidity_pct = float(humidity)
+            except (TypeError, ValueError):
+                _LOGGER.warning(
+                    "Skipping device %s: non-numeric temperature/humidity in %s",
+                    serial,
+                    device,
+                )
+                continue
+
             is_new = serial not in self.data
             if is_new:
                 self.data[serial] = HomePodDeviceData(serial=serial, name=name)
                 new_serials.append(serial)
 
-            self.data[serial].update(float(temp), float(humidity))
+            self.data[serial].update(temperature_c, humidity_pct)
 
         # Notify coordinator listeners (existing entities) of updated data.
         self.async_set_updated_data(self.data)
