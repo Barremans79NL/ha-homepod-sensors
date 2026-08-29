@@ -69,14 +69,11 @@ class HomePodSensorsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> HomePodSensorsOptionsFlow:
-        return HomePodSensorsOptionsFlow(config_entry)
+        return HomePodSensorsOptionsFlow()
 
 
 class HomePodSensorsOptionsFlow(config_entries.OptionsFlow):
     """Handle options for HomePod Sensors."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -85,11 +82,11 @@ class HomePodSensorsOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        current_interval = self._config_entry.options.get(
+        current_interval = self.config_entry.options.get(
             CONF_UPDATE_INTERVAL,
-            self._config_entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+            self.config_entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
         )
-        current_secret = self._config_entry.options.get(CONF_SECRET, "")
+        current_secret = self.config_entry.options.get(CONF_SECRET, "")
 
         return self.async_show_form(
             step_id="init",
