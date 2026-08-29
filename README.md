@@ -184,4 +184,6 @@ automation:
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE). This is a fork of
+[pujux/ha-homepod-sensors](https://github.com/pujux/ha-homepod-sensors);
+copyright is shared with the original contributors.

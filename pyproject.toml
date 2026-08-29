@@ -7,6 +7,7 @@ name = "ha-homepod-sensors"
 version = "1.0.0"
 description = "Home Assistant integration for HomePod Mini temperature and humidity sensors"
 requires-python = ">=3.12"
+license = { text = "MIT" }
 dependencies = []
 
 [project.optional-dependencies]
