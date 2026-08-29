@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ha-homepod-sensors"
-version = "1.1.0"
+version = "1.2.0"
 description = "Home Assistant integration for HomePod mini temperature and humidity sensors"
 requires-python = ">=3.12"
 license = { text = "MIT" }
