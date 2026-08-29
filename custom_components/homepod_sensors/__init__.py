@@ -33,6 +33,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "HomePod Sensors",
         webhook_id,
         async_handle_webhook,
+        # The iOS Shortcut pushes from the home network (or via VPN); reject
+        # requests that reach the endpoint from the internet.
+        local_only=True,
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
