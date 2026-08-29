@@ -24,7 +24,10 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        # editable_mode=compat keeps a real directory on sys.path instead of the
+        # PEP 660 import hook, which Home Assistant's integration loader chokes on
+        # (FileNotFoundError on __editable__.*.finder.__path_hook__).
+        run: pip install -e ".[dev]" --config-settings editable_mode=compat
 
       - name: Lint with ruff
         run: ruff check .
