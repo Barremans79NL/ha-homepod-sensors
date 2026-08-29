@@ -3,16 +3,16 @@
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 [![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io)
 
-Expose your **HomePod Mini temperature and humidity sensors** in Home Assistant.
+Expose your **HomePod mini temperature and humidity sensors** in Home Assistant.
 
-Apple enables the HomePod Mini's built-in sensors in the Apple Home app but deliberately blocks third-party access via the HomeKit Controller API. This integration bridges the gap using an **iOS Shortcuts automation** that pushes sensor data to a Home Assistant webhook every 5 minutes (configurable).
+Apple enables the HomePod mini's built-in sensors in the Apple Home app but deliberately blocks third-party access via the HomeKit Controller API. This integration bridges the gap using an **iOS Shortcuts automation** that pushes sensor data to a Home Assistant webhook every 5 minutes (configurable).
 
 ---
 
 ## Features
 
-- 🌡️ **Temperature sensor** per HomePod Mini
-- 💧 **Humidity sensor** per HomePod Mini
+- 🌡️ **Temperature sensor** per HomePod mini
+- 💧 **Humidity sensor** per HomePod mini
 - ⚠️ **Stale data sensor** — alerts when iOS has stopped pushing updates
 - 🔍 **Auto-discovery** — new HomePods appear automatically when they first report in
 - ⚙️ **Configurable interval** — set how often the Shortcut runs (1–60 min)
@@ -25,7 +25,7 @@ Apple enables the HomePod Mini's built-in sensors in the Apple Home app but deli
 
 - Home Assistant 2024.1 or newer
 - [HACS](https://hacs.xyz) installed
-- An iPhone or iPad on the same Apple Home as your HomePod Mini(s)
+- An iPhone or iPad on the same Apple Home as your HomePod mini(s)
 - iOS 16.2 or newer (for HomePod sensor access in Shortcuts)
 
 ---
@@ -72,8 +72,8 @@ There is no prebuilt `.shortcut` template yet — build it manually:
 
 **Action 1: Get details of Home**
 - Action: *Get details of home*
-- Select your HomePod Mini → pick **Current temperature** and **Current humidity**
-- Repeat for each HomePod Mini you want to track
+- Select your HomePod mini → pick **Current temperature** and **Current humidity**
+- Repeat for each HomePod mini you want to track
 
 **Action 2: Get Contents of URL**
 - URL: *(paste your webhook URL from Step 1)*
@@ -109,7 +109,7 @@ Run the Shortcut once manually (tap ▷ in the Automation tab). Within a few sec
 
 ## Entities
 
-Each HomePod Mini device gets:
+Each HomePod mini device gets:
 
 | Entity | Type | Description |
 |--------|------|-------------|

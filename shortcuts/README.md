@@ -1,6 +1,6 @@
 # HomePod Sensors — iOS Shortcut Template
 
-This directory contains the iOS Shortcuts automation that bridges HomePod Mini sensor data to Home Assistant.
+This directory contains the iOS Shortcuts automation that bridges HomePod mini sensor data to Home Assistant.
 
 ## Import the Shortcut
 
@@ -13,7 +13,7 @@ steps below.
 
 Every **5 minutes** (default), the shortcut:
 
-1. Queries HomeKit for all HomePod Mini accessories
+1. Queries HomeKit for all HomePod mini accessories
 2. Reads each device's **temperature** and **humidity** values
 3. POSTs a JSON payload to your Home Assistant webhook URL
 
@@ -26,7 +26,7 @@ Build a new Shortcut in the iOS Shortcuts app with the following actions:
 ### Action 1 — Get HomeKit accessories
 ```
 Get HomeKit Accessories
-  Filter: Type = Thermostat (HomePod Mini reports as Thermostat)
+  Filter: Type = Thermostat (HomePod mini reports as Thermostat)
   Store result in: homepods
 ```
 
@@ -119,5 +119,5 @@ Once the Shortcut is working manually:
 ## Notes
 
 - No prebuilt `.shortcut` file is published; build it manually from the steps above
-- HomePod Mini must be in the same Apple Home as the iOS device running the Shortcut
+- HomePod mini must be in the same Apple Home as the iOS device running the Shortcut
 - iOS 16.4+ recommended; Shortcuts 5.0+

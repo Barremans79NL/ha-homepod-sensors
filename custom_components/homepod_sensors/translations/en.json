@@ -13,7 +13,7 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Only one HomePod Sensors instance is supported. It manages all HomePod Minis in your Apple Home."
+      "single_instance_allowed": "Only one HomePod Sensors instance is supported. It manages every HomePod mini in your Apple Home."
     }
   },
   "options": {

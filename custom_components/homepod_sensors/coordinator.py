@@ -27,7 +27,7 @@ _SAVE_DELAY = 10
 
 
 class HomePodDeviceData:
-    """Holds the latest data for a single HomePod Mini."""
+    """Holds the latest data for a single HomePod mini."""
 
     def __init__(self, serial: str, name: str) -> None:
         self.serial = serial

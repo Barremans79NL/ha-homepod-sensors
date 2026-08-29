@@ -63,7 +63,7 @@ class HomePodStaleSensor(CoordinatorEntity[HomePodCoordinator], BinarySensorEnti
             identifiers={(DOMAIN, self._serial)},
             name=device.name if device else f"HomePod {self._serial[:6]}",
             manufacturer="Apple",
-            model="HomePod Mini",
+            model="HomePod mini",
         )
 
     @property

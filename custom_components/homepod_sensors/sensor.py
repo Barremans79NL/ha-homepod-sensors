@@ -68,7 +68,7 @@ class HomePodBaseSensor(CoordinatorEntity[HomePodCoordinator], SensorEntity):
             identifiers={(DOMAIN, self._serial)},
             name=device.name if device else f"HomePod {self._serial[:6]}",
             manufacturer="Apple",
-            model="HomePod Mini",
+            model="HomePod mini",
         )
 
     @property
@@ -85,7 +85,7 @@ class HomePodMeasurementSensor(HomePodBaseSensor):
 
 
 class HomePodTemperatureSensor(HomePodMeasurementSensor):
-    """Temperature sensor for a HomePod Mini."""
+    """Temperature sensor for a HomePod mini."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -105,7 +105,7 @@ class HomePodTemperatureSensor(HomePodMeasurementSensor):
 
 
 class HomePodHumiditySensor(HomePodMeasurementSensor):
-    """Humidity sensor for a HomePod Mini."""
+    """Humidity sensor for a HomePod mini."""
 
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT

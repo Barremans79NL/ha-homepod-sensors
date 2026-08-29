@@ -43,7 +43,7 @@ SAMPLE_PAYLOAD = {
         },
         {
             "serial": "HP000000000002",
-            "name": "Bedroom HomePod Mini",
+            "name": "Bedroom HomePod mini",
             "temperature_c": 20.1,
             "humidity_pct": 52.0,
         },
