@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 
 from aiohttp import web
-
 from homeassistant.components.webhook import Request
 from homeassistant.core import HomeAssistant
 

@@ -3,13 +3,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
 from homeassistant import config_entries
 
 from custom_components.homepod_sensors.const import (
     CONF_UPDATE_INTERVAL,
     CONF_WEBHOOK_ID,
-    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 

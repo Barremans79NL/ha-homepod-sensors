@@ -11,7 +11,6 @@ from custom_components.homepod_sensors.const import (
     DOMAIN,
 )
 
-
 TEST_WEBHOOK_ID = "test-webhook-id-abc123"
 
 

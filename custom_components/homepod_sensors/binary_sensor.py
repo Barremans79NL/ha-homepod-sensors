@@ -1,7 +1,7 @@
 """Binary sensor platform for HomePod Sensors integration."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,7 +13,12 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_UPDATE_INTERVAL, DEFAULT_STALENESS_MULTIPLIER, DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .const import (
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_STALENESS_MULTIPLIER,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+)
 from .coordinator import HomePodCoordinator, HomePodDeviceData
 
 
@@ -79,7 +84,7 @@ class HomePodStaleSensor(CoordinatorEntity[HomePodCoordinator], BinarySensorEnti
         device = self._device_data
         if device is None or device.last_seen is None:
             return True  # No data yet — treat as stale
-        age = datetime.now(timezone.utc) - device.last_seen
+        age = datetime.now(UTC) - device.last_seen
         return age > self._staleness_threshold()
 
     @property

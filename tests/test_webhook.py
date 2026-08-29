@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
+from custom_components.homepod_sensors.const import DOMAIN
 from custom_components.homepod_sensors.coordinator import HomePodCoordinator
-from custom_components.homepod_sensors.const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 
-from .conftest import SAMPLE_PAYLOAD, TEST_WEBHOOK_ID
+from .conftest import SAMPLE_PAYLOAD
 
 
 @pytest.fixture

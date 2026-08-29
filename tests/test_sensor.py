@@ -1,12 +1,9 @@
 """Tests for HomePod Sensors sensor entities."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
-
-from homeassistant.const import STATE_UNAVAILABLE
 
 from custom_components.homepod_sensors.const import DOMAIN
 
