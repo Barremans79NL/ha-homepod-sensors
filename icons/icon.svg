@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4A5058"/>
+      <stop offset="1" stop-color="#22252A"/>
+    </linearGradient>
+    <radialGradient id="top" cx="0.5" cy="0.4" r="0.75">
+      <stop offset="0" stop-color="#767E89"/>
+      <stop offset="1" stop-color="#3A3F47"/>
+    </radialGradient>
+    <pattern id="mesh" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="5" cy="5" r="3.1" fill="#000000" opacity="0.12"/>
+    </pattern>
+    <clipPath id="bodyClip">
+      <rect x="76" y="64" width="360" height="384" rx="172" ry="172"/>
+    </clipPath>
+  </defs>
+
+  <!-- HomePod mini body -->
+  <rect x="76" y="64" width="360" height="384" rx="172" ry="172" fill="url(#body)"/>
+
+  <!-- speaker-mesh texture -->
+  <g clip-path="url(#bodyClip)">
+    <rect x="76" y="64" width="360" height="384" fill="url(#mesh)"/>
+  </g>
+
+  <!-- touch surface on top -->
+  <ellipse cx="256" cy="120" rx="140" ry="46" fill="url(#top)"/>
+  <ellipse cx="256" cy="116" rx="140" ry="46" fill="none" stroke="#8A929D" stroke-width="3" opacity="0.55"/>
+
+  <!-- thermometer -->
+  <g stroke-linecap="round">
+    <rect x="234" y="146" width="44" height="196" rx="22" fill="#FFFFFF"/>
+    <circle cx="256" cy="368" r="48" fill="#FFFFFF"/>
+    <rect x="244" y="206" width="24" height="150" fill="#FF5A4D"/>
+    <circle cx="256" cy="368" r="30" fill="#FF5A4D"/>
+  </g>
+
+  <!-- humidity droplet -->
+  <path d="M356 214 C 386 250 384 276 356 282 C 328 276 326 250 356 214 Z" fill="#35A0E8"/>
+  <path d="M347 236 C 341 244 341 254 347 258" fill="none" stroke="#FFFFFF" stroke-width="5"
+        stroke-linecap="round" opacity="0.8"/>
+</svg>

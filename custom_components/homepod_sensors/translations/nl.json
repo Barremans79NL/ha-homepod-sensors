@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "HomePod Sensors instellen",
+        "description": "Je iOS-opdracht (Shortcut) moet elke {update_interval} minuten een POST-verzoek naar deze webhook-URL sturen:\n\n```\n{webhook_url}\n```\n\nZie de README voor de volledige handleiding om de opdracht in te stellen en een importeerbaar sjabloon.\n\nStel hieronder het update-interval in (hoe vaak je iOS-opdracht wordt uitgevoerd).",
+        "data": {
+          "update_interval": "Update-interval (minuten)"
+        },
+        "data_description": {
+          "update_interval": "Hoe vaak de iOS-opdracht sensorgegevens verstuurt. Apparaten worden als verouderd gemarkeerd na 3× deze waarde."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Er wordt maar één instantie van HomePod Sensors ondersteund. Deze beheert elke HomePod mini in je Apple Home."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "HomePod Sensors-opties",
+        "data": {
+          "update_interval": "Update-interval (minuten)",
+          "secret": "Gedeeld geheim (optioneel)"
+        },
+        "data_description": {
+          "update_interval": "Hoe vaak de iOS-opdracht sensorgegevens verstuurt. Drempel voor verouderd = 3× deze waarde.",
+          "secret": "Indien ingesteld, moet de iOS-opdracht een overeenkomend veld \"secret\" in de JSON-body opnemen. Laat leeg om uit te schakelen."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Temperatuur"
+      },
+      "humidity": {
+        "name": "Luchtvochtigheid"
+      },
+      "last_updated": {
+        "name": "Laatst bijgewerkt"
+      }
+    },
+    "binary_sensor": {
+      "stale": {
+        "name": "Verouderd",
+        "state": {
+          "on": "Verouderd",
+          "off": "Actueel"
+        }
+      }
+    }
+  }
+}
