@@ -55,6 +55,7 @@ class HomePodSensorsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             description_placeholders={
                 "webhook_url": webhook_url,
+                "update_interval": str(DEFAULT_UPDATE_INTERVAL),
             },
         )
 

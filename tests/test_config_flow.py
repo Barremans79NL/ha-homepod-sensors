@@ -39,6 +39,26 @@ async def test_config_flow_creates_entry(hass):
     assert result["data"][CONF_UPDATE_INTERVAL] == 5
 
 
+async def test_config_flow_form_provides_all_description_placeholders(hass):
+    """The initial form must supply every placeholder used in the translation string.
+
+    translations/en.json references both {webhook_url} and {update_interval}; a
+    missing key breaks the setup dialog rendering.
+    """
+    with patch(
+        "custom_components.homepod_sensors.config_flow.get_url",
+        return_value="http://homeassistant.local:8123",
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+    assert result["type"] == "form"
+    placeholders = result["description_placeholders"]
+    assert "webhook_url" in placeholders
+    assert "update_interval" in placeholders
+
+
 async def test_config_flow_single_instance(hass, mock_config_entry):
     """Only one instance of the integration is allowed."""
     mock_config_entry.add_to_hass(hass)
