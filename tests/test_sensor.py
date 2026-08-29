@@ -1,6 +1,7 @@
 """Tests for HomePod Sensors sensor entities."""
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -76,6 +77,46 @@ async def test_stale_binary_sensor_when_no_data(hass, setup_integration):
     state = hass.states.get("binary_sensor.test_pod_stale")
     assert state is not None
     assert state.state == "on"
+
+
+async def test_measurement_sensors_go_unavailable_when_stale(hass, setup_integration):
+    """Temperature/humidity must not keep presenting a stale value as current."""
+    coordinator = setup_integration
+    coordinator.handle_webhook_payload(SAMPLE_PAYLOAD["devices"])
+    await hass.async_block_till_done()
+
+    # Age the reading well past 3x the 5-minute default interval.
+    coordinator.data["HP000000000001"].last_seen = datetime.now(UTC) - timedelta(hours=1)
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.living_room_homepod_temperature").state == "unavailable"
+    assert hass.states.get("sensor.living_room_homepod_humidity").state == "unavailable"
+    assert hass.states.get("binary_sensor.living_room_homepod_stale").state == "on"
+
+
+async def test_last_updated_sensor_stays_available_when_stale(hass, mock_config_entry):
+    """The Last Updated timestamp must stay available so staleness is visible.
+
+    Checked at the property level: this entity is disabled in the registry by
+    default, so it is not in the state machine during a normal setup.
+    """
+    from custom_components.homepod_sensors.coordinator import HomePodCoordinator
+    from custom_components.homepod_sensors.sensor import (
+        HomePodLastUpdatedSensor,
+        HomePodTemperatureSensor,
+    )
+
+    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator.handle_webhook_payload(SAMPLE_PAYLOAD["devices"])
+    coordinator.data["HP000000000001"].last_seen = datetime.now(UTC) - timedelta(hours=1)
+
+    serial = "HP000000000001"
+    last_updated = HomePodLastUpdatedSensor(coordinator, mock_config_entry, serial)
+    temperature = HomePodTemperatureSensor(coordinator, mock_config_entry, serial)
+
+    assert temperature.available is False
+    assert last_updated.available is True
 
 
 async def test_multiple_devices_create_separate_entities(hass, setup_integration):

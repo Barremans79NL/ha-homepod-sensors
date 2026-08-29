@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import HomePodCoordinator, HomePodDeviceData
+from .staleness import is_stale
 
 
 async def async_setup_entry(
@@ -31,9 +32,9 @@ async def async_setup_entry(
     def _add_sensors_for_device(serial: str, device: HomePodDeviceData) -> None:
         async_add_entities(
             [
-                HomePodTemperatureSensor(coordinator, serial),
-                HomePodHumiditySensor(coordinator, serial),
-                HomePodLastUpdatedSensor(coordinator, serial),
+                HomePodTemperatureSensor(coordinator, entry, serial),
+                HomePodHumiditySensor(coordinator, entry, serial),
+                HomePodLastUpdatedSensor(coordinator, entry, serial),
             ]
         )
 
@@ -49,8 +50,11 @@ class HomePodBaseSensor(CoordinatorEntity[HomePodCoordinator], SensorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: HomePodCoordinator, serial: str) -> None:
+    def __init__(
+        self, coordinator: HomePodCoordinator, entry: ConfigEntry, serial: str
+    ) -> None:
         super().__init__(coordinator)
+        self._entry = entry
         self._serial = serial
 
     @property
@@ -72,7 +76,15 @@ class HomePodBaseSensor(CoordinatorEntity[HomePodCoordinator], SensorEntity):
         return self._device_data is not None and self._device_data.last_seen is not None
 
 
-class HomePodTemperatureSensor(HomePodBaseSensor):
+class HomePodMeasurementSensor(HomePodBaseSensor):
+    """A reading that should stop presenting a value once it goes stale."""
+
+    @property
+    def available(self) -> bool:
+        return super().available and not is_stale(self._device_data, self._entry)
+
+
+class HomePodTemperatureSensor(HomePodMeasurementSensor):
     """Temperature sensor for a HomePod Mini."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
@@ -80,8 +92,10 @@ class HomePodTemperatureSensor(HomePodBaseSensor):
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_name = "Temperature"
 
-    def __init__(self, coordinator: HomePodCoordinator, serial: str) -> None:
-        super().__init__(coordinator, serial)
+    def __init__(
+        self, coordinator: HomePodCoordinator, entry: ConfigEntry, serial: str
+    ) -> None:
+        super().__init__(coordinator, entry, serial)
         self._attr_unique_id = f"{serial}_temperature"
 
     @property
@@ -90,7 +104,7 @@ class HomePodTemperatureSensor(HomePodBaseSensor):
         return device.temperature_c if device else None
 
 
-class HomePodHumiditySensor(HomePodBaseSensor):
+class HomePodHumiditySensor(HomePodMeasurementSensor):
     """Humidity sensor for a HomePod Mini."""
 
     _attr_device_class = SensorDeviceClass.HUMIDITY
@@ -98,8 +112,10 @@ class HomePodHumiditySensor(HomePodBaseSensor):
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_name = "Humidity"
 
-    def __init__(self, coordinator: HomePodCoordinator, serial: str) -> None:
-        super().__init__(coordinator, serial)
+    def __init__(
+        self, coordinator: HomePodCoordinator, entry: ConfigEntry, serial: str
+    ) -> None:
+        super().__init__(coordinator, entry, serial)
         self._attr_unique_id = f"{serial}_humidity"
 
     @property
@@ -109,14 +125,20 @@ class HomePodHumiditySensor(HomePodBaseSensor):
 
 
 class HomePodLastUpdatedSensor(HomePodBaseSensor):
-    """Sensor showing the last time data was received from iOS."""
+    """Sensor showing the last time data was received from iOS.
+
+    Deliberately extends the base (not the measurement) class: it must keep
+    reporting the last-seen timestamp even when that timestamp is stale.
+    """
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_name = "Last Updated"
     _attr_entity_registry_enabled_default = False  # diagnostic — off by default
 
-    def __init__(self, coordinator: HomePodCoordinator, serial: str) -> None:
-        super().__init__(coordinator, serial)
+    def __init__(
+        self, coordinator: HomePodCoordinator, entry: ConfigEntry, serial: str
+    ) -> None:
+        super().__init__(coordinator, entry, serial)
         self._attr_unique_id = f"{serial}_last_updated"
 
     @property

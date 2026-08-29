@@ -1,8 +1,6 @@
 """Binary sensor platform for HomePod Sensors integration."""
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -13,13 +11,9 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    CONF_UPDATE_INTERVAL,
-    DEFAULT_STALENESS_MULTIPLIER,
-    DEFAULT_UPDATE_INTERVAL,
-    DOMAIN,
-)
+from .const import DOMAIN
 from .coordinator import HomePodCoordinator, HomePodDeviceData
+from .staleness import is_stale
 
 
 async def async_setup_entry(
@@ -58,13 +52,6 @@ class HomePodStaleSensor(CoordinatorEntity[HomePodCoordinator], BinarySensorEnti
         self._entry = entry
         self._attr_unique_id = f"{serial}_stale"
 
-    def _staleness_threshold(self) -> timedelta:
-        interval = self._entry.options.get(
-            CONF_UPDATE_INTERVAL,
-            self._entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
-        )
-        return timedelta(minutes=interval * DEFAULT_STALENESS_MULTIPLIER)
-
     @property
     def _device_data(self) -> HomePodDeviceData | None:
         return self.coordinator.data.get(self._serial)
@@ -81,11 +68,7 @@ class HomePodStaleSensor(CoordinatorEntity[HomePodCoordinator], BinarySensorEnti
 
     @property
     def is_on(self) -> bool:
-        device = self._device_data
-        if device is None or device.last_seen is None:
-            return True  # No data yet — treat as stale
-        age = datetime.now(UTC) - device.last_seen
-        return age > self._staleness_threshold()
+        return is_stale(self._device_data, self._entry)
 
     @property
     def available(self) -> bool:
