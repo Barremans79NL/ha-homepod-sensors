@@ -4,9 +4,8 @@ This directory contains the iOS Shortcuts automation that bridges HomePod Mini s
 
 ## Import the Shortcut
 
-> **Download:** [HomePod Sensors Shortcut (iCloud)](https://www.icloud.com/shortcuts/) *(link added on first release)*
-
-Alternatively, build it manually using the steps below.
+There is no prebuilt `.shortcut` file to import yet. Build it manually using the
+steps below.
 
 ---
 
@@ -65,6 +64,11 @@ Get Contents of URL:
     }
 ```
 
+If you configured a shared secret in the integration's **Configure** dialog, add
+it as a top-level field: `{ "secret": "<your secret>", "devices": devices }`.
+The webhook is `local_only`, so the iPhone must be on the home network or reach
+Home Assistant over VPN.
+
 ---
 
 ## Automation Setup
@@ -114,6 +118,6 @@ Once the Shortcut is working manually:
 
 ## Notes
 
-- The `.shortcut` binary file will be attached to the GitHub release page on first publish
+- No prebuilt `.shortcut` file is published; build it manually from the steps above
 - HomePod Mini must be in the same Apple Home as the iOS device running the Shortcut
 - iOS 16.4+ recommended; Shortcuts 5.0+

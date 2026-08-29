@@ -55,13 +55,15 @@ Copy `custom_components/homepod_sensors/` to your HA `config/custom_components/`
 4. Set your preferred update interval (default: 5 minutes)
 5. Click **Submit**
 
+> **Optional shared secret:** after setup, open the integration's **Configure**
+> dialog to set a secret. When set, the Shortcut's JSON body must include a
+> matching `"secret"` field or the webhook returns `401`. Leave it blank to
+> disable. The webhook is also registered `local_only`, so the iPhone must be
+> on the home network (or reach HA over VPN).
+
 ### Step 2 — Create the iOS Shortcut
 
-**Option A: Import the template (easiest)**
-
-Download [`shortcuts/HomePod Sensors.shortcut`](shortcuts/HomePod%20Sensors.shortcut) on your iPhone and open it. When prompted, paste your webhook URL. Done.
-
-**Option B: Create manually**
+There is no prebuilt `.shortcut` template yet — build it manually:
 
 1. Open the **Shortcuts** app on your iPhone
 2. Tap **Automation** → **+** → **Time of Day**
@@ -91,6 +93,9 @@ Download [`shortcuts/HomePod Sensors.shortcut`](shortcuts/HomePod%20Sensors.shor
   ]
 }
 ```
+
+> If you set a shared secret in Step 1, add a top-level `"secret": "…"` field
+> alongside `"devices"`.
 
 > **Finding your HomePod serial**: Open the **Home** app → tap your HomePod → tap the ⚙️ icon → scroll to *Serial Number*.
 
@@ -156,6 +161,10 @@ automation:
 - Check that your HA webhook URL is reachable from your iPhone (try opening it in Safari)
 - Ensure the JSON body in your Shortcut includes `serial`, `name`, `temperature_c`, and `humidity_pct`
 - Check HA logs: **Settings → System → Logs** → search for `homepod_sensors`
+
+**Webhook returns 401 / 405, or pushes fail when away from home**
+- `401` — the request's `"secret"` does not match the one set in the integration's Configure dialog
+- The webhook is `local_only`; when the iPhone is on cellular it must reach HA over VPN
 
 **Sensors show as unavailable**
 - The integration has not received data yet — run the Shortcut manually once to populate initial values
