@@ -10,4 +10,8 @@ CONF_WEBHOOK_ID = "webhook_id"
 DEFAULT_UPDATE_INTERVAL = 5  # minutes
 DEFAULT_STALENESS_MULTIPLIER = 3  # stale after 3x the update interval
 
+# Persisted store of last-known devices, so entities survive a restart.
+STORAGE_VERSION = 1
+STORAGE_KEY = DOMAIN
+
 PLATFORMS = ["sensor", "binary_sensor"]

@@ -6,11 +6,15 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN
+from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 
 _LOGGER = logging.getLogger(__name__)
+
+# Debounce disk writes; the device list changes rarely (only on first contact).
+_SAVE_DELAY = 10
 
 
 class HomePodDeviceData:
@@ -43,6 +47,40 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
         self.data: dict[str, HomePodDeviceData] = {}
         self.update_interval_minutes = update_interval_minutes
         self._new_device_callbacks: list[Callable[[str, HomePodDeviceData], None]] = []
+        self._store: Store[list[dict[str, str]]] = Store(
+            hass, STORAGE_VERSION, STORAGE_KEY
+        )
+
+    async def async_load_stored_devices(self) -> None:
+        """Restore the last-known device list from disk.
+
+        Readings are push-only and not persisted, so restored devices start
+        without a value until the next webhook arrives. Restoring them here
+        means their entities are created immediately on startup instead of
+        vanishing until the iOS Shortcut next reports in.
+        """
+        stored = await self._store.async_load()
+        if not stored:
+            return
+        for item in stored:
+            serial = (item.get("serial") or "").strip()
+            if not serial or serial in self.data:
+                continue
+            name = (item.get("name") or "").strip() or f"HomePod {serial[:6]}"
+            self.data[serial] = HomePodDeviceData(serial=serial, name=name)
+
+    @callback
+    def _devices_to_store(self) -> list[dict[str, str]]:
+        """Serialise the current device list for persistence."""
+        return [
+            {"serial": device.serial, "name": device.name}
+            for device in self.data.values()
+        ]
+
+    @callback
+    def _persist_devices(self) -> None:
+        """Schedule a debounced write of the current device list."""
+        self._store.async_delay_save(self._devices_to_store, _SAVE_DELAY)
 
     @callback
     def register_new_device_callback(
@@ -79,6 +117,10 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
         for serial in new_serials:
             for cb in self._new_device_callbacks:
                 cb(serial, self.data[serial])
+
+        # Persist the device list so entities survive a restart.
+        if new_serials:
+            self._persist_devices()
 
     async def _async_update_data(self) -> dict[str, HomePodDeviceData]:
         """Not used — data arrives via webhook push only."""
