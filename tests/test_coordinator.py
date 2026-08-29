@@ -70,6 +70,33 @@ async def test_non_numeric_reading_does_not_leave_partial_device(hass):
     assert coordinator.data["HP1"].temperature_c == 21.0
 
 
+async def test_out_of_range_reading_is_dropped(hass):
+    """Implausible values must not reach the sensor (they pollute LTS forever)."""
+    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator.handle_webhook_payload(
+        [
+            {"serial": "HP1", "name": "Cold", "temperature_c": -999.0, "humidity_pct": 50.0},
+            {"serial": "HP2", "name": "Wet", "temperature_c": 20.0, "humidity_pct": 1e9},
+            {"serial": "HP3", "name": "OK", "temperature_c": 20.0, "humidity_pct": 50.0},
+        ]
+    )
+
+    assert "HP1" not in coordinator.data
+    assert "HP2" not in coordinator.data
+    assert coordinator.data["HP3"].temperature_c == 20.0
+
+
+async def test_range_bounds_are_inclusive(hass):
+    """Values exactly on the boundary are accepted."""
+    coordinator = HomePodCoordinator(hass, update_interval_minutes=5)
+    coordinator.handle_webhook_payload(
+        [{"serial": "HP1", "name": "Edge", "temperature_c": 80.0, "humidity_pct": 0.0}]
+    )
+
+    assert coordinator.data["HP1"].temperature_c == 80.0
+    assert coordinator.data["HP1"].humidity_pct == 0.0
+
+
 async def test_new_devices_are_persisted(hass):
     """Handling a payload with new devices should write them to the store."""
     coordinator = HomePodCoordinator(hass, update_interval_minutes=5)

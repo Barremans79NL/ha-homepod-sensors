@@ -9,7 +9,15 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
+from .const import (
+    DOMAIN,
+    MAX_HUMIDITY_PCT,
+    MAX_TEMPERATURE_C,
+    MIN_HUMIDITY_PCT,
+    MIN_TEMPERATURE_C,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,6 +119,17 @@ class HomePodCoordinator(DataUpdateCoordinator[dict[str, HomePodDeviceData]]):
                     "Skipping device %s: non-numeric temperature/humidity in %s",
                     serial,
                     device,
+                )
+                continue
+
+            if not (
+                MIN_TEMPERATURE_C <= temperature_c <= MAX_TEMPERATURE_C
+            ) or not (MIN_HUMIDITY_PCT <= humidity_pct <= MAX_HUMIDITY_PCT):
+                _LOGGER.warning(
+                    "Skipping device %s: reading out of range (%s C, %s %%)",
+                    serial,
+                    temperature_c,
+                    humidity_pct,
                 )
                 continue
 
